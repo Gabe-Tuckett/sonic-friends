@@ -36,7 +36,9 @@ function muzzle(color = '#f8d9a8', opts = {}) {
 
 function head(color, stroke, opts = {}) {
   const { cx = 50, cy = 55, r = 27 } = opts;
-  return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}" stroke="${stroke}" stroke-width="2"/>`;
+  return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}" stroke="${stroke}" stroke-width="2"/>`
+    + `<ellipse cx="${cx - r * 0.3}" cy="${cy - r * 0.42}" rx="${r * 0.55}" ry="${r * 0.34}" fill="#fff" opacity="0.16"/>`
+    + `<path d="M${cx - r * 0.7},${cy + r * 0.62} A ${r},${r} 0 0 0 ${cx + r * 0.7},${cy + r * 0.62}" fill="rgba(0,0,0,0.10)"/>`;
 }
 
 /* ---------- the roster ---------- */
@@ -595,4 +597,48 @@ function charSVG(c) {
     <circle cx="50" cy="50" r="47" fill="${c.color}" opacity="0.16"/>
     ${c.art}
   </svg>`;
+}
+
+/* ---------- lore + voice metadata ---------- */
+
+/* Sonic Heroes-style formation types: speed / fly / power. */
+const TEAM_OF = {
+  sonic: 'speed', amy: 'speed', shadow: 'speed', blaze: 'speed', espio: 'speed',
+  marine: 'speed', fang: 'speed', jet: 'speed', shade: 'speed', honey: 'speed',
+  tiara: 'speed', sticks: 'speed', 'metal-sonic': 'speed', mephiles: 'speed', infinite: 'speed',
+  tails: 'fly', rouge: 'fly', silver: 'fly', cream: 'fly', charmy: 'fly',
+  ray: 'fly', bean: 'fly', wave: 'fly', tikal: 'fly', chip: 'fly',
+  knuckles: 'power', omega: 'power', big: 'power', vector: 'power', mighty: 'power',
+  bark: 'power', storm: 'power', chaos: 'power', gamma: 'power', emerl: 'power', eggman: 'power'
+};
+
+/* Per-character speech personality: [pitch, rate] for speechSynthesis. */
+const VOICE_OF = {
+  sonic: [1.35, 1.18], tails: [1.65, 1.1], knuckles: [0.75, 0.95], amy: [1.5, 1.05],
+  shadow: [0.6, 0.88], rouge: [1.05, 0.92], omega: [0.35, 0.8], silver: [1.25, 1.0],
+  blaze: [1.1, 0.95], marine: [1.55, 1.2], cream: [1.85, 0.95], big: [0.5, 0.72],
+  vector: [0.7, 1.0], espio: [0.9, 0.88], charmy: [1.8, 1.3], mighty: [0.9, 1.0],
+  ray: [1.55, 1.1], fang: [1.0, 1.12], bean: [1.6, 1.3], bark: [0.55, 0.78],
+  jet: [1.1, 1.15], wave: [1.3, 1.05], storm: [0.5, 0.85], tikal: [1.4, 0.95],
+  chaos: [0.75, 0.78], gamma: [0.4, 0.8], emerl: [0.5, 0.9], shade: [1.0, 0.9],
+  honey: [1.4, 1.1], tiara: [1.3, 1.0], sticks: [1.5, 1.28], chip: [1.7, 1.2],
+  'metal-sonic': [0.45, 1.0], mephiles: [0.45, 0.78], infinite: [0.65, 0.9], eggman: [0.65, 1.05]
+};
+
+CHARACTERS.forEach((c) => {
+  c.team = TEAM_OF[c.id] || 'speed';
+  const v = VOICE_OF[c.id] || [1.15, 1.0];
+  c.pitch = v[0];
+  c.rate = v[1];
+  c.imgUrl = null; // set by the asset-override probe if img/<id>.png exists
+});
+
+const charById = (id) => CHARACTERS.find((c) => c.id === id);
+
+/* Preferred art for a character: a real image if one was dropped into img/,
+   otherwise the built-in SVG portrait. */
+function charArt(c) {
+  return c.imgUrl
+    ? `<img class="char-img" src="${c.imgUrl}" alt="${c.name}" draggable="false">`
+    : charSVG(c);
 }
